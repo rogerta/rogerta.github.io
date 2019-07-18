@@ -1,0 +1,383 @@
+<html>
+  <head>
+    <title>Ligato</title>
+    <style>
+      html {
+        --token-size: 50px;  /* must equal js constant kTokenSize */
+        --max-rows: 10;  /* must equal js constant kMaxRows */
+        --board-border-radius: 10px;
+        --token-margin: 4px;
+
+        --blue-background-color: blue;
+        --blue-foreground-color: gold;
+        --red-background-color: red;
+        --red-foreground-color: gold;
+      }
+      body {
+        margin: 0;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+      }
+      #exBoard {
+        position: relative;
+        display: inline-flex;
+        flex-direction: column;
+        justify-content: start;
+        align-items: center;
+        background: #dddddd;
+        width: calc(8 * var(--token-size));
+      }
+      #exBoard > * {
+        position: relative;
+      }
+      #exBoard > .token {
+        opacity: 0;
+      }
+      #exBoard.blue > .token.blue {
+        opacity: 1;
+      }
+      #exBoard.red > .token.red {
+        opacity: 1;
+      }
+      #exBoard > :first-child {
+        align-self: flex-start;
+      }
+      #exBoard > :last-child {
+        align-self: flex-end;
+      }
+      #board {
+        position: relative;
+        display: inline-flex;
+        flex-direction: row;
+        justify-content: start;
+        align-items: stretch;
+        background: #999999;
+        border-radius: var(--board-border-radius);
+      }
+      .track {
+        position: relative;
+        display: inline-flex;
+        flex-direction: column;
+        justify-content: start;
+        align-items: stretch;
+        width: var(--token-size);
+        height: calc(var(--max-rows) * var(--token-size));
+      }
+      .track:first-child {
+        border-top-left-radius: var(--board-border-radius);
+        border-bottom-left-radius: var(--board-border-radius);
+      }
+      .track:first-child > :first-child {
+        border-top-left-radius: var(--board-border-radius);
+      }
+      .track:first-child > :nth-child(2) {
+        border-bottom-left-radius: var(--board-border-radius);
+      }
+      .track:last-child {
+        border-top-right-radius: var(--board-border-radius);
+        border-bottom-right-radius: var(--board-border-radius);
+      }
+      .track:last-child > :first-child {
+        border-top-right-radius: var(--board-border-radius);
+      }
+      .track:last-child > :nth-child(2) {
+        border-bottom-right-radius: var(--board-border-radius);
+      }
+      .token {
+        border-radius: 50%;
+        width: calc(var(--token-size) - 2 * var(--token-margin));
+        height: calc(var(--token-size) - 2 * var(--token-margin));
+      }
+      .track > * {
+        position: absolute;
+        left: 0;
+      }
+      .blue {
+        --background-color: var(--blue-background-color);
+        --star-color: var(--blue-foreground-color);
+        margin: var(--token-margin);
+        background: blue;
+        background: paint(paintBlue);
+        transition: top 0.75s ease;
+        box-shadow: 2px 2px 5px black;
+      }
+      .red {
+        --background-color: var(--red-background-color);
+        --star-color: var(--red-foreground-color);
+        margin: var(--token-margin);
+        background: red;
+        background: paint(paintRed);
+        transition: top 0.75s ease;
+        box-shadow: 2px 2px 5px black;
+      }
+      .red-zone {
+        background: rgba(255, 0, 0, 0.4);
+        width: var(--token-size);
+        height: calc( 2 * var(--token-size));
+      }
+      .blue-zone {
+        background: rgba(0, 0, 255, 0.4);
+        width: var(--token-size);
+        height: calc( 2 * var(--token-size));
+      }
+      .red .target {
+        background: rgba(255, 0, 0, 0.2);
+      }
+      .blue .target {
+        --background-color: transparent;
+        --star-color: rgba(0, 0, 255, 0.2);
+        background: rgba(0, 0, 255, 0.2);
+        background: paint(paintBlue);
+      }
+      .target {
+        border: solid rgb(100, 255, 100) var(--token-margin);
+        opacity: 0;
+      }
+      .track:hover .target.visible {
+        opacity: 1;
+      }
+      .p0 {
+        top: 0%;
+      }
+      .p1 {
+        top: 10%;
+      }
+      .p2 {
+        top: 20%;
+      }
+      .p3 {
+        top: 30%;
+      }
+      .p4 {
+        top: 40%;
+      }
+      .p5 {
+        top: 50%;
+      }
+      .p6 {
+        top: 60%;
+      }
+      .p7 {
+        top: 70%;
+      }
+      .p8 {
+        top: 80%;
+      }
+      .p9 {
+        top: 90%;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="exBoard">
+      <div class="red token">&nbsp;</div>
+      <div id="board">
+        <div id="t0" class="track">
+          <div class="red-zone p0"></div>
+          <div class="blue-zone p8"></div>
+          <div class="blue token">&nbsp;</div>
+          <div class="red token">&nbsp;</div>
+          <div class="top target token">&nbsp;</div>
+          <div class="bottom target token">&nbsp;</div>
+        </div>
+        <div id="t1" class="track">
+          <div class="red-zone p0"></div>
+          <div class="blue-zone p8"></div>
+          <div class="blue token">&nbsp;</div>
+          <div class="red token">&nbsp;</div>
+          <div class="top target token">&nbsp;</div>
+          <div class="bottom target token">&nbsp;</div>
+        </div>
+        <div id="t2" class="track">
+          <div class="red-zone p0"></div>
+          <div class="blue-zone p8"></div>
+          <div class="blue token">&nbsp;</div>
+          <div class="red token">&nbsp;</div>
+          <div class="top target token">&nbsp;</div>
+          <div class="bottom target token">&nbsp;</div>
+        </div>
+        <div id="t3" class="track">
+          <div class="red-zone p0"></div>
+          <div class="blue-zone p8"></div>
+          <div class="blue token">&nbsp;</div>
+          <div class="red token">&nbsp;</div>
+          <div class="top target token">&nbsp;</div>
+          <div class="bottom target token">&nbsp;</div>
+        </div>
+        <div id="t4" class="track">
+          <div class="red-zone p0"></div>
+          <div class="blue-zone p8"></div>
+          <div class="blue token">&nbsp;</div>
+          <div class="red token">&nbsp;</div>
+          <div class="top target token">&nbsp;</div>
+          <div class="bottom target token">&nbsp;</div>
+        </div>
+        <div id="t5" class="track">
+          <div class="red-zone p0"></div>
+          <div class="blue-zone p8"></div>
+          <div class="blue token">&nbsp;</div>
+          <div class="red token">&nbsp;</div>
+          <div class="top target token">&nbsp;</div>
+          <div class="bottom target token">&nbsp;</div>
+        </div>
+      </div>
+      <div class="blue token">&nbsp;</div>
+    </div>
+    <script type="module">
+      import * as Ligato from './ligato.js';
+
+      const kTokenSize = 50;  // Must equal css var(--token-size).
+
+      const game = new Ligato.Game();
+
+      // Set to true when a transition is started via a user click.  This
+      // ensures that only user clicks can change the current player.
+      let transitionForUserClick = false;
+
+      // The final position of the last moved token.
+      let lastPosition = -1;
+
+      // One time initialization of the game.
+      function init() {
+        CSS.paintWorklet.addModule('paint.js');
+
+        // Attach a click callback to each target.
+        document.querySelectorAll('.target').forEach(t => {
+          t.addEventListener('click', e => {
+            //console.log('click: ' + e.path[1].id);
+            const target = e.target;
+            // Ignore target if not visible.
+            if (target.classList.contains('visible')) {
+              const p = calculatePosition(target);
+              const track = Number.parseInt(target.parentElement.id.substr(1));
+              game.moveToken(track, p);
+              transitionForUserClick = true;
+              lastPosition = p;
+              updateUI();
+              makeAllTargetsInvisible();
+            }
+          });
+        });
+        document.addEventListener('transitionend', e => {
+          // When opponent tokens are moved back, many transition ends may be
+          // generated.  In this case we want to ignore them.  So this function
+          // only handles transition ends caused by a user click.
+          if (!transitionForUserClick)
+            return;
+
+          // Check for winner after updating state.
+          const winner = game.winner;
+          if (winner) {
+            alert(`${winner} wins!`);
+            return;
+          }
+
+          game.moveOpponentsBackIfNeeded(lastPosition);
+          game.changePlayer();
+          repositionTargets();
+          transitionForUserClick = false;
+          lastPosition = -1;
+          updateUI();
+        });
+
+        resetGame();
+      }
+
+      // Calculate the position of a target bssed on its position on the page.
+      function calculatePosition(t) {
+        return Math.floor(t.offsetTop / kTokenSize);
+      }
+
+      // Reset the game state to start a brand new game.
+      function resetGame() {
+        makeAllTargetsInvisible();
+
+        // Remove all position classes from tokens.
+        document.querySelectorAll('.token').forEach(t => {
+          removePositionClasses(t);
+        });
+
+        game.reset();
+        transitionForUserClick = false;
+        updateUI();
+      }
+
+        // Make all targets invisible.
+        function makeAllTargetsInvisible() {
+        document.querySelectorAll('.target').forEach(t => {
+          t.classList.remove('visible');
+        });
+      }
+
+      // Remove any 'pX' classes from the element |t|.  This is used before a
+      // new 'pX' class is added to make sure the element only ever has one
+      // such class.
+      function removePositionClasses(t) {
+        for (let i = 0; i < Ligato.kMaxRows; i++)
+          t.classList.remove(`p${i}`);
+      }
+
+      // Update the UI based on the state of the game.
+      function updateUI() {
+        const exBoard = document.getElementById('exBoard');
+        exBoard.classList.remove(Ligato.kPlayerBlue);
+        exBoard.classList.remove(Ligato.kPlayerRed);
+        exBoard.classList.add(game.player);
+
+        repositionPlayerTokens();
+        repositionTargets();
+      }
+
+      // Reposition the player tokens based on the state of the game.
+      function repositionPlayerTokens() {
+        const board = document.getElementById('board');
+        board.querySelectorAll('.red.token').forEach((t, index) => {
+          removePositionClasses(t);
+          t.classList.add(`p${game.positionsRed[index]}`);
+        });
+        board.querySelectorAll('.blue.token').forEach((t, index) => {
+          removePositionClasses(t);
+          t.classList.add(`p${game.positionsBlue[index]}`);
+        });
+      }
+
+      // Reposition the two targets of each track.  The positions
+      // are based on the position of the token for the current player as well
+      // the number of total tokens in the row of that token.  If a target
+      // would be repositioned off the board or on an opponent's token, then
+      // that target is not available and made invisible.
+      function repositionTargets() {
+        document.querySelectorAll(`.track`).forEach((t, index) => {
+          const pos = game.positions[index];
+          const count = game.tokensPerRow[pos];
+          //console.log(`track${index} pos=${pos} count=${count}`);
+
+          let target = t.querySelector('.bottom.target');
+          removePositionClasses(target);
+          let tpos = pos - count;
+          //console.log(`bottom tpos=${tpos} oppo=${positionsOppo[index]}`);
+          if (tpos >= 0 && game.oppoPositions[index] != tpos) {
+            target.classList.add(`p${tpos}`);
+            target.classList.add(`visible`);
+          } else {
+            target.classList.remove(`visible`);
+          }
+
+          target = t.querySelector('.top.target');
+          removePositionClasses(target);
+          tpos = pos + count;
+          //console.log(`top tpos=${tpos} oppo=${positionsOppo[index]}`);
+          if (tpos < Ligato.kMaxRows && game.oppoPositions[index] != tpos) {
+            target.classList.add(`p${tpos}`);
+            target.classList.add(`visible`);
+          } else {
+            target.classList.remove(`visible`);
+          }
+        });
+      }
+
+      init();
+    </script>
+  </body>
+</html>
