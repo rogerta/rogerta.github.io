@@ -240,7 +240,8 @@
 
       // One time initialization of the game.
       function init() {
-        CSS.paintWorklet.addModule('paint.js');
+        if (CSS && CSS.paintWorklet)
+          CSS.paintWorklet.addModule('paint.js');
 
         // Attach a click callback to each target.
         document.querySelectorAll('.target').forEach(t => {
@@ -273,7 +274,12 @@
             return;
           }
 
+          // Move the opponent back if the current player completed a row.
+          // Then make sure the opponent can move at all.
           game.moveOpponentsBackIfNeeded(lastPosition);
+          while (!game.canOpponentMove)
+            game.moveOpponentsBackIfNeeded(-1);
+
           game.changePlayer();
           repositionTargets();
           transitionForUserClick = false;

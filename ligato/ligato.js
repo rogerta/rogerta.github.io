@@ -16,6 +16,10 @@ export class Game {
     this.reset();
   }
 
+  get opponent() {
+    return this.player === kPlayerRed ? this.kPlayerBlue : kPlayerRed;
+  }
+
   get positions() {
     return this.player === kPlayerRed ? this.positionsRed : this.positionsBlue;
   }
@@ -31,8 +35,7 @@ export class Game {
                                  true)) {
       return kPlayerRed;
     }
-    if (this.positionsBlue.reduce((prev, curr) => { prev && curr === 0},
-                                   true)) {
+    if (this.positionsBlue.reduce((prev, curr) => prev && curr === 0, true)) {
       return kPlayerBlue;
     }
     return null;
@@ -88,12 +91,17 @@ export class Game {
   // has filled an entire row with tokens.  Opponent tokens are only moved
   // if the new position is not occupied.  |row| is the row into which the
   // current player's token has moved into.
+  //
+  // If |row| equals -1 this means "force move back" regardless of whether
+  // a row is filled or not.
   moveOpponentsBackIfNeeded(row) {
     let moveBack = true;
-    for (let i = 0; i < kMaxTokens; i++) {
-      if (this.positionsBlue[i] !== row && this.positionsRed[i] !== row) {
-        moveBack = false;
-        break;
+    if (row !== -1) {
+      for (let i = 0; i < kMaxTokens; i++) {
+        if (this.positionsBlue[i] !== row && this.positionsRed[i] !== row) {
+          moveBack = false;
+          break;
+        }
       }
     }
 
@@ -105,7 +113,7 @@ export class Game {
       for (let i = 0; i < kMaxTokens; i++) {
         const pos = oppo[i];
         const backPos = pos + dec;
-        if (backPos > 0 && backPos <= kMaxRows && backPos !== curr[i])
+        if (backPos > 0 && backPos < kMaxRows && backPos !== curr[i])
           oppo[i] = backPos;
       }
 
@@ -117,7 +125,28 @@ export class Game {
 
   // Change the current player.
   changePlayer() {
-    this.player = this.player === kPlayerBlue ? kPlayerRed : kPlayerBlue;
+    this.player = this.player === kPlayerRed ? kPlayerBlue : kPlayerRed;
+  }
+
+  // Returns true if the opponent player has at least one move.
+  get canOpponentMove() {
+    const canMove = this.oppoPositions.reduce((acc, position, track) => {
+      if (acc)
+        return true;
+
+      const count = this.tokensPerRow[position];
+      const newUp = position + count;
+      const newDown = position - count;
+
+      const canGoUp = (newUp >= 0 && newUp < kMaxRows &&
+        newUp !== this.positions[track]);
+      const canGoDown = (newDown >= 0 && newDown < kMaxRows &&
+        newDown !== this.positions[track]);
+      return canGoUp || canGoDown;
+    }, false);
+    if (!canMove)
+      console.log(`${this.opponent} can't move`);
+    return canMove;
   }
 
   // Calculate how many tokens or either player is in each row.  This is
@@ -135,23 +164,68 @@ export class Game {
 
   // Methods used for training the ML model.
 
-  // Gets the current state of the game along with a value.
+  // Gets the current state of the game along with a score.
   getObservation() {
+    const state = this.positionsRed.concat(this.positionsBlue);
+    state.push(this.player === kPlayerRed ? 0 : 1);
     return {
-      state: this.positionsRed.concat(this.positionsBlue)
-          .push(this.player === kPlayerRed ? 0 : 1),
-      value: 0  // TODO: figure out good value.
+      state: state,
+      score: this.getScore()
     };
   }
 
+  // Gets a score based on the current state of the game.
+  getScore() {
+    const curr = this.positions;
+    const oppo = this.oppoPositions;
+    let baseline = 0;
+    let oppoBaseline = 0;
+    if (this.player === kPlayerRed) {
+      oppoBaseline = kMaxRows - 1;
+    } else {
+      baseline = kMaxRows - 1;
+    }
+
+    // Caculate the curent player's value.
+    let score = curr.reduce((acc, position) =>
+        acc + Math.abs(position - baseline), 0);
+
+    // Subtract the opponent player's value.
+    score -= oppo.reduce((acc, position) =>
+        acc + Math.abs(position - oppoBaseline), 0);
+
+    return score;
+  }
+
   // Performs the next step in the game.  The current player's token in
-  // |track| is moved to |position|.
+  // |track| is moved either up or down depending on  |updown|.
   //
   // |track| is a number representing the track X [0, kMaxTokens).
-  // |position| is a number X representing the row [0, kMaxRows)
-  step(track, position) {
-    this.moveToken(track, position);
-    this.moveOpponentsBackIfNeeded();
+  // |updown| is a bool representing whether the token moves up (higher row
+  // number) or down (lower row number).
+  //
+  // The function returns true if the move was valid and false otherwise.
+  step(track, updown) {
+    const pos = this.positions[track];
+    const count = this.tokensPerRow[pos];
+    const newPos = pos + (updown ? count : -count);
+
+    // If the new position is invalid or if the opponent occupies the new
+    // position, this is an invalid move.  Return false and don't update the
+    // game state.
+    if (newPos < 0 || newPos >= kMaxRows ||
+        newPos === this.oppoPositions[track]) {
+      return false;
+    }
+
+    this.moveToken(track, newPos);
+    this.moveOpponentsBackIfNeeded(newPos);
+
+    // If the opponent can't move, move all tokens back one and try again.
+    while (!this.canOpponentMove)
+      this.moveOpponentsBackIfNeeded(-1);
+
     this.changePlayer();
+    return true;
   }
 }
