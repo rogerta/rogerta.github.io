@@ -64,7 +64,31 @@ class Red {
     ctx.fillStyle = bg;
     ctx.fillRect(0, 0, dx, dy);
   }
-}
+};
+
+class ExBoard {
+  static get inputProperties() {
+    return ['--token-size'];
+  }
+
+  paint(ctx, geom, properties) {
+    const dx = geom.width;
+    const dy = geom.height;
+    const tokenSize = dx / 8;  //  parseInt(properties.get('--token-size'));
+
+    ctx.strokeStyle = 'black';
+    for (let x = tokenSize * 2; x < dx - tokenSize; x += tokenSize) {
+      ctx.moveTo(x, tokenSize);
+      ctx.lineTo(x, dy - tokenSize);
+    }
+    for (let y = tokenSize * 2; y < dy - tokenSize; y += tokenSize) {
+      ctx.moveTo(tokenSize, y);
+      ctx.lineTo(dx - tokenSize, y);
+    }
+    ctx.stroke();
+  }
+};
 
 registerPaint('paintBlue', Blue);
 registerPaint('paintRed', Red);
+registerPaint('paintExBoard', ExBoard);

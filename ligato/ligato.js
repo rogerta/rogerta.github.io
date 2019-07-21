@@ -52,7 +52,7 @@ export class Game {
     let total = 20;
     this.positionsRed.forEach((_, i, array) => {
       const p = Math.floor(Math.random() *
-          Math.min(4, total - kMaxTokens - 1));
+          Math.min(5, total - kMaxTokens - 1));
       array[i] = p;
       total -= array[i];
     });
@@ -63,7 +63,7 @@ export class Game {
     total = 20;
     this.positionsBlue.forEach((_, i, array) => {
       const p = Math.floor(Math.random() *
-          Math.min(4, total - kMaxTokens - 1));
+          Math.min(5, total - kMaxTokens - 1));
       array[i] = kMaxRows - 1 - p;
       total -= p;
     });
