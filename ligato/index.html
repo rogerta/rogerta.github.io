@@ -9,7 +9,7 @@
         --token-margin: 4px;
 
         --blue-background-color: blue;
-        --blue-foreground-color: gold;
+        --blue-foreground-color: #0000aa;
         --red-background-color: red;
         --red-foreground-color: gold;
       }
@@ -34,6 +34,11 @@
       }
       #exBoard > .token {
         opacity: 0;
+        color: white;
+        text-shadow: 0 0 2px #000000;
+        line-height: calc((var(--token-size) - 2 * var(--token-margin)));
+        text-align: center;
+        font-weight: bold;
       }
       #exBoard.blue > .token.blue {
         opacity: 1;
@@ -172,58 +177,58 @@
   </head>
   <body>
     <div id="exBoard">
-      <div class="red token">&nbsp;</div>
+      <div id="redTurnMarker" class="red token"></div>
       <div id="board">
         <div id="t0" class="track">
           <div class="red-zone p0"></div>
           <div class="blue-zone p8"></div>
-          <div class="blue token">&nbsp;</div>
-          <div class="red token">&nbsp;</div>
-          <div class="top target token">&nbsp;</div>
-          <div class="bottom target token">&nbsp;</div>
+          <div class="blue token"></div>
+          <div class="red token"></div>
+          <div class="top target token"></div>
+          <div class="bottom target token"></div>
         </div>
         <div id="t1" class="track">
           <div class="red-zone p0"></div>
           <div class="blue-zone p8"></div>
-          <div class="blue token">&nbsp;</div>
-          <div class="red token">&nbsp;</div>
-          <div class="top target token">&nbsp;</div>
-          <div class="bottom target token">&nbsp;</div>
+          <div class="blue token"></div>
+          <div class="red token"></div>
+          <div class="top target token"></div>
+          <div class="bottom target token"></div>
         </div>
         <div id="t2" class="track">
           <div class="red-zone p0"></div>
           <div class="blue-zone p8"></div>
-          <div class="blue token">&nbsp;</div>
-          <div class="red token">&nbsp;</div>
-          <div class="top target token">&nbsp;</div>
-          <div class="bottom target token">&nbsp;</div>
+          <div class="blue token"></div>
+          <div class="red token"></div>
+          <div class="top target token"></div>
+          <div class="bottom target token"></div>
         </div>
         <div id="t3" class="track">
           <div class="red-zone p0"></div>
           <div class="blue-zone p8"></div>
-          <div class="blue token">&nbsp;</div>
-          <div class="red token">&nbsp;</div>
-          <div class="top target token">&nbsp;</div>
-          <div class="bottom target token">&nbsp;</div>
+          <div class="blue token"></div>
+          <div class="red token"></div>
+          <div class="top target token"></div>
+          <div class="bottom target token"></div>
         </div>
         <div id="t4" class="track">
           <div class="red-zone p0"></div>
           <div class="blue-zone p8"></div>
-          <div class="blue token">&nbsp;</div>
-          <div class="red token">&nbsp;</div>
-          <div class="top target token">&nbsp;</div>
-          <div class="bottom target token">&nbsp;</div>
+          <div class="blue token"></div>
+          <div class="red token"></div>
+          <div class="top target token"></div>
+          <div class="bottom target token"></div>
         </div>
         <div id="t5" class="track">
           <div class="red-zone p0"></div>
           <div class="blue-zone p8"></div>
-          <div class="blue token">&nbsp;</div>
-          <div class="red token">&nbsp;</div>
-          <div class="top target token">&nbsp;</div>
-          <div class="bottom target token">&nbsp;</div>
+          <div class="blue token"></div>
+          <div class="red token"></div>
+          <div class="top target token"></div>
+          <div class="bottom target token"></div>
         </div>
       </div>
-      <div class="blue token">&nbsp;</div>
+      <div id="blueTurnMarker" class="blue token">&nbsp;</div>
     </div>
     <script type="module">
       import * as Ligato from './ligato.js';
@@ -231,6 +236,7 @@
       const kTokenSize = 50;  // Must equal css var(--token-size).
 
       const game = new Ligato.Game();
+      let turn = 1;
 
       // Set to true when a transition is started via a user click.  This
       // ensures that only user clicks can change the current player.
@@ -282,6 +288,7 @@
             game.moveOpponentsBackIfNeeded(-1);
 
           game.changePlayer();
+          turn += 0.5;
           repositionTargets();
           transitionForUserClick = false;
           lastPosition = -1;
@@ -306,6 +313,7 @@
         });
 
         game.reset();
+        turn = 1;
         transitionForUserClick = false;
         updateUI();
       }
@@ -332,6 +340,9 @@
         exBoard.classList.remove(Ligato.kPlayerRed);
         exBoard.classList.add(game.player);
 
+        const turnString = Math.floor(turn).toString();
+        exBoard.querySelector('#redTurnMarker').innerHTML = turnString;
+        exBoard.querySelector('#blueTurnMarker').innerHTML = turnString;
         repositionPlayerTokens();
         repositionTargets();
       }

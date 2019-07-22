@@ -51,10 +51,9 @@ export class Game {
     // 4 positions from the baseline.
     let total = 20;
     this.positionsRed.forEach((_, i, array) => {
-      const p = Math.floor(Math.random() *
-          Math.min(5, total - kMaxTokens - 1));
+      const p = Math.floor(Math.random() * Math.min(5, total));
       array[i] = p;
-      total -= array[i];
+      total -= p + 1;
     });
 
     // Randomly place the blue tokens.  The sum of the distances of all the
@@ -62,10 +61,9 @@ export class Game {
     // 4 positions from the baseline.
     total = 20;
     this.positionsBlue.forEach((_, i, array) => {
-      const p = Math.floor(Math.random() *
-          Math.min(5, total - kMaxTokens - 1));
+      const p = Math.floor(Math.random() * Math.min(5, total));
       array[i] = kMaxRows - 1 - p;
-      total -= p;
+      total -= p + 1;
     });
 
     this.calculateTokensPerRow();
