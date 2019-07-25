@@ -51,7 +51,7 @@ export class Game {
     // 4 positions from the baseline.
     let total = 20;
     this.positionsRed.forEach((_, i, array) => {
-      const p = Math.floor(Math.random() * Math.min(5, total));
+      const p = Math.floor(Math.random() * Math.min(5, total - (kMaxTokens - i - 1)));
       array[i] = p;
       total -= p + 1;
     });
@@ -61,7 +61,7 @@ export class Game {
     // 4 positions from the baseline.
     total = 20;
     this.positionsBlue.forEach((_, i, array) => {
-      const p = Math.floor(Math.random() * Math.min(5, total));
+      const p = Math.floor(Math.random() * Math.min(5, total - (kMaxTokens - i - 1)));
       array[i] = kMaxRows - 1 - p;
       total -= p + 1;
     });
@@ -71,10 +71,13 @@ export class Game {
 
   // Move the currenlt player's token at |index| to |position|.
   moveToken(index, position) {
+    if (Number.isNaN(position))
+      throw new Error(`position isNaN`);
+
     if (index < 0 || index >= kMaxTokens)
       throw new Error(`Invalid index=${index}`);
 
-    if (position < 0 || index >= kMaxRows)
+    if (position < 0 || position >= kMaxRows)
       throw new Error(`Invalid position=${position}`);
 
     if (this.oppoPositions[index] === position)
@@ -111,7 +114,10 @@ export class Game {
       for (let i = 0; i < kMaxTokens; i++) {
         const pos = oppo[i];
         const backPos = pos + dec;
-        if (backPos > 0 && backPos < kMaxRows && backPos !== curr[i])
+        if (Number.isNaN(backPos))
+          throw new Error(`backPos isNaN`);
+
+        if (backPos >= 0 && backPos < kMaxRows && backPos !== curr[i])
           oppo[i] = backPos;
       }
 
@@ -192,6 +198,11 @@ export class Game {
     score -= oppo.reduce((acc, position) =>
         acc + Math.abs(position - oppoBaseline), 0);
 
+    if (Number.isNaN(score)) {
+      console.assert(!Number.isNaN(score), "************");
+      score = 0;
+    }
+
     return score;
   }
 
@@ -225,5 +236,20 @@ export class Game {
 
     this.changePlayer();
     return true;
+  }
+
+  validateState() {
+    console.assert(this.positionsRed.length == kMaxTokens, 'Bad red length');
+    console.assert(this.positionsBlue.length == kMaxTokens, 'Bad blue length');
+    console.assert(this.tokensPerRow.length == kMaxRows, 'Bad count length');
+    this.positionsRed.forEach((v, i) => {
+      console.assert(!Number.isNaN(v) && v >= 0 && v < kMaxRows, `red[${i}]=${v}`);
+    });
+    this.positionsBlue.forEach((v, i) => {
+      console.assert(!Number.isNaN(v) && v >= 0 && v < kMaxRows, `blue[${i}]=${v}`);
+    });
+    this.tokensPerRow.forEach((v, i) => {
+      console.assert(!Number.isNaN(v) && v >= 0 &&v <= kMaxTokens, `tokens[${i}]=${v}`);
+    });
   }
 }
